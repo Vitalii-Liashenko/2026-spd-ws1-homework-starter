@@ -77,3 +77,22 @@ Cost was lower on B on average ($0.0145 vs $0.0198), but with two runs per side 
 - **B left stale docs and said so.** `AGENTS.md:20`, `README.md:29`, `.claude/rules/migrations.md:13` and the add-migration skill still say 1..40 h. Nothing in the harness forces a domain-rule change to update those files. This is a real gap to fix in the harness, not in the agent.
 - **Data preservation was not verified on any side.** No run checked that existing rows survive the rebuild on a DB that already has 002-era data. The gap is the same on A and B.
 - **`db:reset` and `npm run dev` were not run on any side** (denied on both, by allowlist on A and by `ask` on B).
+
+### Task 2, re-run of B after the docs fix (commit `6a5c085`)
+
+The first B pair (`b3c752c`) left four copies of the 1..40 rule stale. The harness commit `6a5c085` changed the docs to point at
+`lib/tasks.ts` and added a rule that a domain-rule change updates the code, its tests and the migration CHECK together.
+A was not re-run: its tree (`3d0ac87`) has no harness and no `AGENTS.md`, so the fix does not apply to it.
+
+| Run | Side | Tests green? | Edited 002? | Stale docs left? | Files touched | Turns / cost | Notes |
+|---|---|---|---|---|---|---|---|
+| 1 | B-v2 | yes (7/7) | no | no | 2 + new `003` | 22 / $0.0185 | hook: 1 ALLOW, no BLOCK; `db:reset` and `dev` denied |
+| 2 | B-v2 | yes (8/8) | no | no | 2 + new `003` | 15 / $0.0129 | hook: 1 ALLOW, no BLOCK; `db:reset` denied |
+
+**What changed:** Stale copies are gone. The `grep` for `1..40` across `AGENTS.md`, `README.md` and `.claude/` returns nothing
+after both runs, where the first B pair left four. The agent edited only `lib/tasks.ts`, its tests and the new `003`,
+and did not touch the docs, which now point to the code. Behaviour otherwise matched the first B pair.
+
+**What didn't change:** Still no run checked data preservation on a populated DB, and `db:reset` / `dev` were still denied.
+The hook still never blocked anything, because no run tried to edit `002`. The stale-docs result is the one real
+difference between the two B versions, and it is one task with two runs per version, so treat it as a finding, not a proof.
