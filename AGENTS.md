@@ -1,4 +1,4 @@
-# Iron Born
+# Team Tasks
 <!-- owner: @vitalii-liashenko · why: single entry point so a fresh agent session can start a task from the repo alone · review-by: 2027-02-23 -->
 
 Small Next.js 16 + React 19 + TypeScript app with a tasks API on SQLite (`node:sqlite`). Node >= 22.13.
