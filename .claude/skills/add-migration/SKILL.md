@@ -11,7 +11,7 @@ Follow the steps in order. Stop and report if a check fails; do not work around 
 1. **Read the current state.** List `db/migrations/` and note the highest number. Read `lib/db.ts` only if the change touches how migrations run.
 2. **Pick the next number.** Use the next free three-digit prefix (e.g. `003_`). Never reuse or renumber a file.
 3. **Name the file** `db/migrations/NNN_short_snake_case_name.sql`. Start it with a comment that says what changes and why.
-4. **Write one logical change.** For a column, use `alter table tasks add column ...`. Constraints must match `AGENTS.md`: title 1..120 chars, estimate 1..40 h, status in `todo | doing | done`.
+4. **Write one logical change.** For a column, use `alter table tasks add column ...`. Constraints must match the domain rules in `lib/tasks.ts`: read the current limits there, do not use numbers from memory or docs.
 5. **Do not touch existing migrations.** If the change looks like it needs an edit to an old file, stop and report it instead.
 6. **Check.** Run:
    - `npm test`. Every test opens `openDb(":memory:")`, so this applies all migrations to a fresh DB. It must be green.

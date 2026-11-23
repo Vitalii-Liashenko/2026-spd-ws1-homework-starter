@@ -10,6 +10,6 @@ paths:
 - Add a new file with the next number: `db/migrations/00N_short_name.sql`. Look at the highest existing number first (today: `002_add_task_estimate.sql`, so the next is `003_`).
 - Migrations run in file-name order. Keep the three-digit prefix.
 - Keep each file to one logical change. Describe it in a comment at the top.
-- Check constraints must match the domain rules in `AGENTS.md`: title 1..120 chars, estimate 1..40 h, status in `todo | doing | done`.
+- Check constraints must match the domain rules in `lib/tasks.ts`. Read the current limits there; do not copy numbers from docs or memory.
 - Before declaring done: run `npm run db:reset`, then `npm run dev` once (or `npm test`), and confirm the new migration applies on a fresh DB.
 - Rollback: SQLite has no down-migrations here. Write a rollback note in the PR body, not a `down` file.

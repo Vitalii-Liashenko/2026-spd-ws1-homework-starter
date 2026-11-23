@@ -17,12 +17,13 @@ Small Next.js 16 + React 19 + TypeScript app with a tasks API on SQLite (`node:s
 - `app/api/` — route handlers (keep thin, delegate to `lib/`)
 
 ## Domain rules
-- Title 1..120 chars, estimate 1..40 h.
-- Status flow `todo → doing → done`; `done` is final.
+- The exact limits (title length, estimate range) and the status flow live in `lib/tasks.ts`. Read them there; do not copy numbers into docs.
+- Status flow `todo → doing → done`; `done` is final, as the code states.
 
 ## Hard rules
 - Never edit or rename an existing migration in `db/migrations/`. Add a new, next-numbered file instead.
 - Business rules live in `lib/tasks.ts`, not in route handlers or UI.
+- A domain-rule change (limit, status flow) updates `lib/tasks.ts`, its tests, and the matching migration CHECK in one PR.
 - Change behaviour with a test in the same change.
 - Never commit `.env*` (except `.env.example`) or `data/*.db`.
 - Do not create `CLAUDE.md`; this file is the single source of agent instructions.
