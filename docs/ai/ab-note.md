@@ -9,7 +9,7 @@
 Why this task: it touches every layer the harness governs (a migration, a business rule, a route, tests). A plain
 agent is likely to edit an existing migration or put validation in a route handler, so the difference should show.
 
-**A — before** (commit `3d0ac87`, no harness) · **B — after** (commit `<sha of the commit with CODEOWNERS>`, full harness)
+**A — before** (commit `3d0ac87`, no harness) · **B — after** (commit `b3c752c`, full harness)
 
 | Run | Side | Tests green? | Rule violations | Files touched | Turns / cost | Notes |
 |---|---|---|---|---|---|---|
@@ -58,11 +58,22 @@ If the agent tries to edit `002_add_task_estimate.sql` on B, the hook should blo
 
 | Run | Side | Tests green? | Edited 002? | Rule violations | Files touched | Turns / cost | Notes |
 |---|---|---|---|---|---|---|---|
-| 1 | A | | | | | | |
-| 2 | A | | | | | | |
-| 1 | B | | | | | | |
-| 2 | B | | | | | | |
+| 1 | A | yes (8/8) | no | none; `README.md` changed (out of scope) | 4: `003` (new), `lib/tasks.ts`, `lib/tasks.test.ts`, `README.md` | 26 / $0.0189 | `db:reset` and `dev` denied (not allowlisted) |
+| 2 | A | yes (7/7) | no | none; `README.md` changed (out of scope) | 4: same set | 23 / $0.0207 | tried a temp script for data preservation; denied |
+| 1 | B | yes (7/7) | no | none | 3: `003` (new), `lib/tasks.ts`, `lib/tasks.test.ts` | 14 / $0.0128 | hook: 1 ALLOW (new `003`), no BLOCK; `db:reset` denied by `ask` |
+| 2 | B | yes (7/7) | no | none | 3: same set | 24 / $0.0162 | hook: ALLOW only; `db:reset` denied by `ask` |
 
-**What changed:** <fill in: whether A edited the applied migration, and what B did when the hook fired>
+Setup: each run was `claude -p` in a detached worktree (`3d0ac87` for A, `b3c752c` for B), `npm ci` first, with
+`--permission-mode acceptEdits` and the same allowlist on both sides (`npm test`, `npm run typecheck`, `git status`, `git diff`).
+Runs were sequential pairs, not interactive sessions. The user-level `~/.claude/CLAUDE.md` and plugins applied to both sides.
 
-**What didn't change:** <be honest>
+**What changed:** Both sides avoided the trap. None edited the applied `002_add_task_estimate.sql`; all four wrote a new
+numbered migration that rebuilds `tasks` with the new CHECK. So the hook never blocked anything, and the one visible effect of B
+was its ALLOW log lines. The one behavioural difference is scope: A changed `README.md` (out of scope), B left it alone.
+Cost was lower on B on average ($0.0145 vs $0.0198), but with two runs per side and different turn counts this is not evidence.
+
+**What didn't change:** The harness did not prevent a wrong edit here, because the plain agent did not attempt one. Also:
+- **A has no `AGENTS.md`** (it is at `3d0ac87`), so the criterion "domain rule updated in `AGENTS.md`" cannot be compared.
+- **B left stale docs and said so.** `AGENTS.md:20`, `README.md:29`, `.claude/rules/migrations.md:13` and the add-migration skill still say 1..40 h. Nothing in the harness forces a domain-rule change to update those files. This is a real gap to fix in the harness, not in the agent.
+- **Data preservation was not verified on any side.** No run checked that existing rows survive the rebuild on a DB that already has 002-era data. The gap is the same on A and B.
+- **`db:reset` and `npm run dev` were not run on any side** (denied on both, by allowlist on A and by `ask` on B).
