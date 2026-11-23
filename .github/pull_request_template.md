@@ -1,7 +1,7 @@
 ## Participant
 
-- **First and last name (required):**
-- GitHub handle:
+- **First and last name (required):** Vitalii Liashenko
+- GitHub handle: Vitalii-Liashenko
 
 ## What I built
 
