@@ -15,7 +15,8 @@
       "Read(./.env)",
       "Read(./.env.local)",
       "Bash(rm -rf:*)",
-      "Bash(git push --force:*)"
+      "Bash(git push --force:*)",
+      "Bash(sed -i:*)"
     ]
   },
   "hooks": {

@@ -15,7 +15,7 @@ Levels: **L0** no agent · **L1** agent suggests, human writes · **L2** agent w
 | Business rules (`lib/tasks.ts`) | L2 | Every rule change has a test in the same PR; `npm test` and `npm run typecheck` green; human reads every line | Tech lead |
 | Route handlers (`app/api/**`) | L3 | `npm run typecheck` and `npm test` green; handler only parses input and calls `lib/`, no business rules | PR reviewer |
 | New migration (new numbered file in `db/migrations/`) | L2 | `npm run db:reset` then `npm run dev` applies it on a fresh DB; rollback note in the PR | Tech lead |
-| Editing an applied migration | L0 | Blocked by the `PreToolUse` hook (see `.claude/settings.json`) | — |
+| Editing an applied migration | L0 | Blocked by the `PreToolUse` hook for Edit/Write/MultiEdit (`.claude/hooks/block-applied-migration.mjs`); a Bash `sed -i` on a migration is blocked by a `deny` rule in `.claude/settings.json`. Other Bash writes (`>`, `tee`, scripts) are not covered: the reviewer checks the PR diff for `db/migrations/` | — |
 | Harness files (`AGENTS.md`, `.claude/**`, `docs/ai/**`) | L1 | Agent drafts, a human writes the final text; behaviour changes need an A/B note | CODEOWNERS |
 
 Rule of thumb: a change type goes one level up only when its check is cheap, independent of the agent, and runs every time.
@@ -38,3 +38,18 @@ The person who opens the PR owns it as if they wrote it.
 ## 5. Personal vs team
 
 Personal preferences: `~/.claude/CLAUDE.md`, `.claude/settings.local.json` (git-ignored). No `CLAUDE.md` / `CLAUDE.local.md` in the repo.
+
+## 6. Permissions and hooks: why each one exists
+
+`.claude/settings.json` has no room for comments, so this table is its header. Owner for all rows: @vitalii-liashenko. Review-by for all rows: 2027-02-23.
+
+| Entry in `.claude/settings.json` | Kind | Why |
+|---|---|---|
+| `Read(./.env)`, `Read(./.env.local)` | deny | secrets must not enter the agent's context |
+| `Bash(rm -rf:*)` | deny | irreversible deletion |
+| `Bash(git push --force:*)` | deny | rewrites shared history |
+| `Bash(sed -i:*)` | deny | in-place edit of a migration through Bash, which the hook does not see |
+| `Bash(npm run db:reset)` | ask | deletes the local SQLite file |
+| `Bash(git push:*)`, `Bash(git commit:*)` | ask | publishes or records work; a human confirms |
+| `Bash(npm test)`, `Bash(npm run typecheck)`, `Bash(git status)`, `Bash(git diff:*)` | allow | read-only or verification commands |
+| `PreToolUse` hook `block-applied-migration.mjs` | hook, exit 2 | editing an applied migration makes databases that already ran it diverge |

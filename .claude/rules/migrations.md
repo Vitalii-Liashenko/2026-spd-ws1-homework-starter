@@ -7,7 +7,7 @@ paths:
 # Migration rules
 
 - Never edit or rename an existing migration. `lib/db.ts` skips a file by its name once it is in `schema_migrations`, so an edit never reaches databases that already ran it.
-- Add a new file with the next number: `db/migrations/00N_short_name.sql`. Look at the highest existing number first (today: `002_add_task_estimate.sql`, so the next is `003_`).
+- Add a new file with the next number: `db/migrations/00N_short_name.sql`. Look at the highest existing number first and use the next one.
 - Migrations run in file-name order. Keep the three-digit prefix.
 - Keep each file to one logical change. Describe it in a comment at the top.
 - Check constraints must match the domain rules in `lib/tasks.ts`. Read the current limits there; do not copy numbers from docs or memory.
